@@ -14,22 +14,22 @@ R"(`; comment
 
 [Section1]
 ; setcion comment
-var1=значение_1 ; parameter commment
+var1=value_1 ; parameter commment
 var2=значение_2
   
 [Section2]
-var1=значение_1
+var1=value_1
 var2=значение_2
 
 ; multiple coma separated params
 [Section3]
-var1=значение_1_1, значение_1_2, значение_1_3
+var1=value_1_1, value_1_2, value_1_3
 var2=значение_2
 ; Zend framework list of params
 [Section3.1]
-var1[]=значение_1_1
-var1[]=значение_1_2
-var1[]=значение_1_3
+var1[]=value_1_1
+var1[]=value_1_2
+var1[]=value_1_3
 var2=значение_2
 
 ; Empty params
@@ -60,13 +60,12 @@ void test_add_params()
     doc.AddParam("Section 1", "One", "Two");
     doc.AddParam("Section 1", "Two", "Three");
 
-    std::unordered_map<std::string, std::string> params = {
-        {"One", "Two"},
-        {"Two", "Three"},
-    };
+    std::unordered_map<std::string, iniparam> expected;
+    expected.insert({"One", iniparam("Two")});
+    expected.insert({"Two", iniparam("Three")});
 
-    auto section = doc.GetSection("Section 1");
-    assert(section == params);
+    auto actual = doc.GetSection("Section 1");
+    assert(actual == expected);
 }
 
 int main() {

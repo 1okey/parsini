@@ -7,10 +7,11 @@
 #include <unordered_map>
 #include <vector>
 #include <set>
+#include <variant>
 
 #include "utils.hpp"
 
-using iniparam = std::string;
+using iniparam = std::variant<std::string, std::vector<std::string>>;
 using inisection = std::unordered_map<std::string, iniparam>;
 
 class inidoc
