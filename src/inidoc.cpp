@@ -12,6 +12,9 @@ void inidoc::_copy(const inidoc& other) noexcept {
 inidoc::inidoc(){}
 
 
+inidoc::~inidoc(){}
+
+
 inidoc::inidoc(inidoc&& tmp_doc) {
     sections = tmp_doc.sections;
 }
@@ -54,6 +57,11 @@ inisection& inidoc::GetSection(const std::string& section_name) {
 
 const inisection& inidoc::GetSection(const std::string& section_name) const {
     return const_cast<const inisection&>(GetSection(section_name));
+}
+
+
+const std::unordered_map<std::string, inisection>& inidoc::GetSections() const noexcept {
+    return sections;
 }
 
 
@@ -110,7 +118,7 @@ bool inidoc::operator!=(const inidoc& other) const noexcept {
 }
 
 
-inidoc load(std::ifstream& file_stream)
+inidoc load(std::istream& file_stream)
 {
     std::string line;
     std::string cur_section;
@@ -119,17 +127,25 @@ inidoc load(std::ifstream& file_stream)
     inidoc doc;
     while(!file_stream.eof()) {
         getline(file_stream, line);
+        if (line.empty()) {
+            continue;
+        }
         line = rtrim(line);
         
         if (isalpha(*line.begin()) && !cur_section.empty()) {
             auto pair = get_key_value(line);
-            doc.AddParam(cur_section, pair.first, pair.second);
+            iniparam param = pair.second;
+            if (std::holds_alternative<std::vector<std::string>>(param)) {
+                doc.AddParam(cur_section, pair.first, std::get<std::vector<std::string>>(param));
+            } else {
+                doc.AddParam(cur_section, pair.first, std::get<std::string>(param));
+            }
         } else {
             switch(*line.begin()) {
                 case '[':
                     closing_idx = line.find_last_of(']');
                     if (closing_idx == std::string::npos) {
-                        throw new std::exception();
+                        throw new std::invalid_argument("Provided document is invalid: missing closing bracker ']'");
                     }
                     cur_section = line.substr(1, closing_idx - 1);
                     doc.AddSection(cur_section);
@@ -145,21 +161,34 @@ inidoc load(std::ifstream& file_stream)
     return std::move(doc);
 }
 
-
-inidoc load(const std::string& file_name)
+void save(const inidoc& document, std::string file_name)
 {
-    std::ifstream file;
-    file.open(file_name, std::ios::in);
-    inidoc doc;
-    if(file.is_open()) {
-        doc = load(file);
-        file.close();
+    if (file_name.size() == 0) {
+        file_name = "document.obj.ini";
     }
-    return doc;
-}
 
+    std::ofstream file(file_name, std::ios::binary);
 
-void save()
-{
+    if (!file.is_open()) {
+        throw new std::bad_exception();
+    }
 
+    for (auto& [name, section]: document.GetSections()) {
+        file << ('[' + name + ']') << '\n';
+        for (auto& [key, value]: section) {
+            file << key << '=';
+            if (std::holds_alternative<std::string>(value)) {
+                file << std::get<std::string>(value);
+            } else {
+                const std::vector<std::string>& param = std::get<std::vector<std::string>>(value);
+                for (const std::string& item: param) {
+                    file << item << ", ";
+                }
+            }
+            file << '\n';
+        }
+        file << '\n';
+    }
+
+    file.close();
 }

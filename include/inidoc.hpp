@@ -24,6 +24,7 @@ public:
     inidoc();
     inidoc(inidoc&& tmp_doc);
     inidoc(const inidoc& other);
+    ~inidoc();
 
     inidoc& operator=(const inidoc& other);
     inidoc& operator=(inidoc&& other);
@@ -34,6 +35,7 @@ public:
     iniparam GetParameter(const std::string& section_name, const std::string& param_name);
 
     const inisection& GetSection(const std::string& section_name) const;
+    const std::unordered_map<std::string, inisection>& GetSections() const noexcept;
 
     inidoc& AddParam(
         const std::string& section_name, 
@@ -52,10 +54,10 @@ public:
     bool operator!=(const inidoc& other) const noexcept;
 };
 
-inidoc load(std::ifstream& file_stream);
+inidoc load(std::istream& file_stream);
 
 inidoc load(const std::string& file_stream);
 
-void save(const inidoc& document);
+void save(const inidoc& document, std::string file_name);
 
 #endif //INIDOC_H
