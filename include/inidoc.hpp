@@ -7,10 +7,11 @@
 #include <unordered_map>
 #include <vector>
 #include <set>
+#include <variant>
 
 #include "utils.hpp"
 
-using iniparam = std::string;
+using iniparam = std::variant<std::string, std::vector<std::string>>;
 using inisection = std::unordered_map<std::string, iniparam>;
 
 class inidoc
@@ -23,26 +24,40 @@ public:
     inidoc();
     inidoc(inidoc&& tmp_doc);
     inidoc(const inidoc& other);
+    ~inidoc();
 
     inidoc& operator=(const inidoc& other);
     inidoc& operator=(inidoc&& other);
 
     std::set<std::string> GetSectionNames();
+    
     inisection& GetSection(const std::string& section_name);
+    iniparam GetParameter(const std::string& section_name, const std::string& param_name);
 
     const inisection& GetSection(const std::string& section_name) const;
-    iniparam& GetParameter(const std::string& section_name, const std::string& param_name);
+    const std::unordered_map<std::string, inisection>& GetSections() const noexcept;
 
-    const iniparam& GetParameter(const std::string& section_name, const std::string& param_name) const;
     inidoc& AddParam(
-        const std::string& section_name, const std::string& key, const std::string& value
+        const std::string& section_name, 
+        const std::string& key, 
+        const std::string& value
     );
+
+    inidoc& AddParam(
+        const std::string& section_name, 
+        const std::string& key, 
+        const std::vector<std::string>& value
+    );
+
     inidoc& AddSection(const std::string& section_name) noexcept;
-    bool operator==(const inidoc& other) noexcept;
-    bool operator!=(const inidoc& other) noexcept;
+    bool operator==(const inidoc& other) const noexcept;
+    bool operator!=(const inidoc& other) const noexcept;
 };
 
-inidoc load_ini(std::ifstream& file_stream);
-inidoc load_ini(const std::string& file_stream);
+inidoc load(std::istream& file_stream);
+
+inidoc load(const std::string& file_stream);
+
+void save(const inidoc& document, std::string file_name);
 
 #endif //INIDOC_H
