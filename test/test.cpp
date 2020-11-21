@@ -4,9 +4,15 @@
 #include <cassert>
 #include <set>
 #include <unordered_map>
+#include <type_traits>
+#include <variant>
 
 #include "inidoc.hpp"
 #include "utils.hpp"
+
+using std::vector;
+using std::string;
+using std::cout;
 
 const char* const ini_str =
 R"(`; comment
@@ -42,6 +48,8 @@ FolderType=Generic
 
 void test_add_section()
 {
+    cout << " * test_add_section - started\n";
+
     inidoc doc;
     doc.AddSection("Section 1");
     doc.AddSection("Section 2");
@@ -50,10 +58,14 @@ void test_add_section()
     doc.AddSection("Section 2");
     std::set<std::string> expected_sections = {"Section 1", "Section 2", "Section 3"};
     assert(doc.GetSectionNames() == expected_sections);
+
+    cout << " * test_add_section - done\n";
 }
 
 void test_add_params()
 {
+    cout << " * test_add_params - started\n";
+
     inidoc doc;
     
     doc.AddSection("Section 1");
@@ -66,14 +78,43 @@ void test_add_params()
 
     auto actual = doc.GetSection("Section 1");
     assert(actual == expected);
+
+    cout << " * test_add_params - done\n";
+}
+
+template<class> inline constexpr bool always_false_v = false;
+
+void test_add_vector_param()
+{
+    cout << " * test_add_vector_param - started\n";
+
+    inidoc doc;
+    
+    vector<string> vec_param = vector<string>{"Three", "Four", "Five"};
+
+    doc.AddSection("Section 1");
+    doc.AddParam("Section 1", "Two", vec_param);
+
+    std::unordered_map<std::string, iniparam> expected;
+    expected.insert({"Two", iniparam(vec_param)});
+
+    auto actual = doc.GetSection("Section 1");
+    assert(actual == expected);
+
+    auto parameter = doc.GetParameter("Section 1", "Two");
+
+    assert(std::get<vector<string>>(parameter) == vec_param);
+
+    cout << " * test_add_vector_param - done\n ";
 }
 
 int main() {
     try {
         test_add_section();
         test_add_params();
-        std::cout << "All tests passed\n";
+        test_add_vector_param();
+        std::cout << "\nAll tests passed\n";
     } catch (std::exception) {
-        std::cout << "Failed to test parsini\n";
+        std::cout << "\nFailed to test parsini\n";
     }
 }

@@ -29,21 +29,33 @@ public:
     inidoc& operator=(inidoc&& other);
 
     std::set<std::string> GetSectionNames();
+    
     inisection& GetSection(const std::string& section_name);
+    iniparam GetParameter(const std::string& section_name, const std::string& param_name);
 
     const inisection& GetSection(const std::string& section_name) const;
-    iniparam& GetParameter(const std::string& section_name, const std::string& param_name);
 
-    const iniparam& GetParameter(const std::string& section_name, const std::string& param_name) const;
     inidoc& AddParam(
-        const std::string& section_name, const std::string& key, const std::string& value
+        const std::string& section_name, 
+        const std::string& key, 
+        const std::string& value
     );
+
+    inidoc& AddParam(
+        const std::string& section_name, 
+        const std::string& key, 
+        const std::vector<std::string>& value
+    );
+
     inidoc& AddSection(const std::string& section_name) noexcept;
-    bool operator==(const inidoc& other) noexcept;
-    bool operator!=(const inidoc& other) noexcept;
+    bool operator==(const inidoc& other) const noexcept;
+    bool operator!=(const inidoc& other) const noexcept;
 };
 
-inidoc load_ini(std::ifstream& file_stream);
-inidoc load_ini(const std::string& file_stream);
+inidoc load(std::ifstream& file_stream);
+
+inidoc load(const std::string& file_stream);
+
+void save(const inidoc& document);
 
 #endif //INIDOC_H

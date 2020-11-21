@@ -1,31 +1,38 @@
 
 #include "inidoc.hpp"
 
+
 void inidoc::_copy(const inidoc& other) noexcept {
     if (*this != other) {
         this->sections = other.sections;
     }
 }
 
+
 inidoc::inidoc(){}
+
 
 inidoc::inidoc(inidoc&& tmp_doc) {
     sections = tmp_doc.sections;
 }
 
+
 inidoc::inidoc(const inidoc& other) {
     _copy(other);
 }
+
 
 inidoc& inidoc::operator=(const inidoc& other) {
     _copy(other);
     return *this;
 }
 
+
 inidoc& inidoc::operator=(inidoc&& other) {
     _copy(other);
     return *this;
 }
+
 
 std::set<std::string> inidoc::GetSectionNames() {
     std::set<std::string> section_names;
@@ -35,48 +42,55 @@ std::set<std::string> inidoc::GetSectionNames() {
     return section_names;
 }
 
+
 inisection& inidoc::GetSection(const std::string& section_name) {
     auto section = sections.find(section_name);
     if (section == sections.end()) {
-        throw new std::exception();
+        throw new std::range_error("No section named " + section_name);
     }
     return section->second;
 }
+
 
 const inisection& inidoc::GetSection(const std::string& section_name) const {
     return const_cast<const inisection&>(GetSection(section_name));
 }
 
-iniparam& inidoc::GetParameter(
+
+iniparam inidoc::GetParameter(
     const std::string& section_name, const std::string& param_name
 ) {
-    auto section = sections.find(section_name);
-    if (section == sections.end()) {
-        throw new std::exception();
+    auto section = GetSection(section_name);
+    auto param = section.find(param_name);
+    if (param == section.end()) {
+        throw new std::range_error("No parameter named " + param_name + " in section " + section_name);
     }
-    auto param = section->second.find(param_name);
-    if (param == section->second.end()) {
-        throw new std::exception();
-    }
-    iniparam& param_v = param->second;
-    return param_v;    }
 
-const iniparam& inidoc::GetParameter(
-    const std::string& section_name, const std::string& param_name
-) const {
-    return const_cast<const iniparam&>(GetParameter(section_name, param_name));
+    return param->second;
 }
+
 
 inidoc& inidoc::AddParam(
     const std::string& section_name, const std::string& key, const std::string& value
 ) {
-    auto section = sections.find(section_name);
-    if (section == sections.end()) {
-        throw new std::exception();
-    }
-    section->second.insert({key, value});
+    inisection& section = GetSection(section_name);
+    iniparam var = value;
+
+    section.insert({key, var});
     return *this;
 }
+
+inidoc& inidoc::AddParam(
+    const std::string& section_name, const std::string& key, const std::vector<std::string>& value
+) {
+    inisection& section = GetSection(section_name);
+    iniparam var = value;
+
+    section.insert({key, var});
+    return *this;
+}
+
+
 inidoc& inidoc::AddSection(const std::string& section_name) noexcept {
     auto section = sections.find(section_name);
     if (section == sections.end()) {
@@ -84,15 +98,19 @@ inidoc& inidoc::AddSection(const std::string& section_name) noexcept {
     }
     return *this;
 }
-bool inidoc::operator==(const inidoc& other) noexcept {
+
+
+bool inidoc::operator==(const inidoc& other) const noexcept {
     return sections == other.sections;
 }
-bool inidoc::operator!=(const inidoc& other) noexcept {
+
+
+bool inidoc::operator!=(const inidoc& other) const noexcept {
     return !(*this == other);
 }
 
 
-inidoc load_ini(std::ifstream& file_stream)
+inidoc load(std::ifstream& file_stream)
 {
     std::string line;
     std::string cur_section;
@@ -127,14 +145,21 @@ inidoc load_ini(std::ifstream& file_stream)
     return std::move(doc);
 }
 
-inidoc load_ini(const std::string& file_name)
+
+inidoc load(const std::string& file_name)
 {
     std::ifstream file;
     file.open(file_name, std::ios::in);
     inidoc doc;
     if(file.is_open()) {
-        doc = load_ini(file);
+        doc = load(file);
         file.close();
     }
     return doc;
+}
+
+
+void save()
+{
+
 }

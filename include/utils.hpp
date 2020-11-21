@@ -3,6 +3,7 @@
 
 #include <string>
 
+
 std::string inline rtrim(std::string& line) 
 {
     auto it = line.begin();
@@ -11,6 +12,7 @@ std::string inline rtrim(std::string& line)
     }
     return std::string(it, line.end());
 }
+
 
 std::pair<std::string, std::string> inline get_key_value(const std::string& line)
 {
@@ -27,5 +29,6 @@ std::pair<std::string, std::string> inline get_key_value(const std::string& line
     }
     return { key, value };
 }
+
 
 #endif //UTILS_H
